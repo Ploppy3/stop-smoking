@@ -1,0 +1,23 @@
+@import "tailwindcss";
+
+@theme {
+  --color-orange: #FF9500;
+  --color-orange-dark: #E67E00;
+  --color-orange-soft: #fff7ec;
+  --color-orange-soft-border: #ffe2b8;
+}
+
+html, body, #root {
+  height: 100%;
+  margin: 0;
+  background: #fff;
+  color: #1a1a1a;
+  -webkit-tap-highlight-color: transparent;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+
+@keyframes pulse-soft {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.55; }
+}
+.animate-pulse-soft { animation: pulse-soft 1.6s ease-in-out infinite; }
