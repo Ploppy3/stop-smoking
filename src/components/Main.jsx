@@ -56,7 +56,7 @@ export default function Main({ state, onLog }) {
         <FormattedMessage id="iSmoked" />
       </button>
 
-      {savings && (
+      {savings ? (
         <div className="text-center bg-orange-soft border border-orange-soft-border rounded-2xl p-5">
           <div className="text-xs uppercase tracking-wide text-neutral-500">
             <FormattedMessage id="savedThisWeek" />
@@ -76,6 +76,16 @@ export default function Main({ state, onLog }) {
               <FormattedMessage id="savings_basedOn" values={{ n: savings.daysUsed }} />
             </div>
           )}
+        </div>
+      ) : (
+        <div className="text-center bg-neutral-50 border border-dashed border-neutral-200 rounded-2xl p-5">
+          <div className="text-xs uppercase tracking-wide text-neutral-400">
+            <FormattedMessage id="savedThisWeek" />
+          </div>
+          <div className="text-4xl font-bold text-neutral-300 mt-1 tabular-nums">--</div>
+          <div className="mt-1 text-sm text-neutral-400">
+            <FormattedMessage id="savings_placeholder" />
+          </div>
         </div>
       )}
     </div>

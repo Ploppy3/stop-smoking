@@ -55,7 +55,14 @@ export default function App({ onLanguageChange }) {
     persist({ ...state, logs, planStartTimestamp });
   };
 
-  const saveSettings = (settings) => persist({ ...state, settings });
+  const saveSettings = (settings) => {
+    let logs = state.logs;
+    if (logs.length > 0) {
+      const newInterval = currentInterval(settings, state.planStartTimestamp);
+      logs = [{ ...logs[0], intervalUsed: newInterval }, ...logs.slice(1)];
+    }
+    persist({ ...state, settings, logs });
+  };
   const resetPlan = () => persist({ ...state, logs: [], planStartTimestamp: null });
 
   return (

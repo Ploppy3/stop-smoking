@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { FormattedMessage, useIntl } from "react-intl";
+import { daysElapsed } from "../logic";
 
 const fieldCls = "flex flex-col gap-1.5";
 const labelCls = "text-sm text-neutral-500";
@@ -8,16 +9,22 @@ const inputCls =
 
 export default function Settings({ state, onSave, onReset }) {
   const intl = useIntl();
-  const [form, setForm] = useState(state.settings);
+  const days = daysElapsed(state.planStartTimestamp);
+  const computedCurrent =
+    state.settings.initialInterval + days * state.settings.dailyIncrease;
+  const [form, setForm] = useState({ ...state.settings, currentInterval: computedCurrent });
   const [savedFlag, setSavedFlag] = useState(false);
 
   const update = (k, v) => setForm({ ...form, [k]: v });
 
   const submit = (e) => {
     e.preventDefault();
+    const dailyIncrease = Math.max(0, parseInt(form.dailyIncrease) || 0);
+    const newCurrent = Math.max(1, parseInt(form.currentInterval) || 1);
+    const initialInterval = Math.max(1, newCurrent - days * dailyIncrease);
     onSave({
-      initialInterval: Math.max(1, parseInt(form.initialInterval) || 1),
-      dailyIncrease: Math.max(0, parseInt(form.dailyIncrease) || 0),
+      initialInterval,
+      dailyIncrease,
       cigarettesPerPack: Math.max(1, parseInt(form.cigarettesPerPack) || 1),
       packCost: Math.max(0, parseFloat(form.packCost) || 0),
       initialCigarettesPerDay: Math.max(1, parseInt(form.initialCigarettesPerDay) || 1),
@@ -34,10 +41,10 @@ export default function Settings({ state, onSave, onReset }) {
   return (
     <form onSubmit={submit} className="flex flex-col gap-5">
       <label className={fieldCls}>
-        <span className={labelCls}><FormattedMessage id="settings_initialInterval" /></span>
+        <span className={labelCls}><FormattedMessage id="settings_currentInterval" /></span>
         <input type="number" min="1" step="1" className={inputCls}
-          value={form.initialInterval}
-          onChange={(e) => update("initialInterval", e.target.value)} />
+          value={form.currentInterval}
+          onChange={(e) => update("currentInterval", e.target.value)} />
       </label>
       <label className={fieldCls}>
         <span className={labelCls}><FormattedMessage id="settings_dailyIncrease" /></span>
