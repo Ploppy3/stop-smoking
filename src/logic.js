@@ -11,6 +11,15 @@ export function fourAmAnchor(t) {
   return anchor.getTime();
 }
 
+// Local YYYY-MM-DD key for the 4AM-anchored day containing `t`.
+export function dayKey(t) {
+  const d = new Date(fourAmAnchor(t));
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+}
+
 // Number of 4AM boundaries crossed between `start` and `now` (local time).
 export function daysElapsed(start, now = Date.now()) {
   if (!start) return 0;
@@ -38,7 +47,7 @@ export function nextAllowedTime(logs) {
 // - Use up to the last 7 completed days.
 // - planStart's first day counts only if its 4AM window has fully elapsed.
 // - Need >= 1 completed day to produce a value; otherwise return null.
-export function computeSavings(settings, logs, planStartTimestamp, now = Date.now()) {
+export function computeSavings(settings, logs, planStartTimestamp, ignoredDays = [], now = Date.now()) {
   if (!planStartTimestamp) return null;
 
   const todayAnchor = fourAmAnchor(now);
@@ -48,22 +57,36 @@ export function computeSavings(settings, logs, planStartTimestamp, now = Date.no
   const completedDays = Math.max(0, Math.round((todayAnchor - planAnchor) / (24 * 3600 * 1000)));
   if (completedDays < 1) return null;
 
-  const windowDays = Math.min(7, completedDays);
-  const windowStart = todayAnchor - windowDays * 24 * 3600 * 1000;
+  const dayMs = 24 * 3600 * 1000;
+  const ignored = new Set(ignoredDays);
+  const targetWindow = Math.min(7, completedDays);
+
+  // Walk back from yesterday, skipping ignored days, until we have targetWindow
+  // counted days or we reach planStart.
+  let counted = 0;
+  let earliestStart = todayAnchor;
+  for (let i = 1; i <= completedDays && counted < targetWindow; i++) {
+    const dayStart = todayAnchor - i * dayMs;
+    if (ignored.has(dayKey(dayStart))) continue;
+    counted++;
+    earliestStart = dayStart;
+  }
+  if (counted < 1) return null;
 
   const cigsInWindow = logs.filter((l) => {
     const t = new Date(l.timestamp).getTime();
-    return t >= windowStart && t < todayAnchor;
+    if (t < earliestStart || t >= todayAnchor) return false;
+    return !ignored.has(dayKey(t));
   }).length;
 
   const costPerCigarette = settings.packCost / settings.cigarettesPerPack;
-  const avgPerDay = cigsInWindow / windowDays;
+  const avgPerDay = cigsInWindow / counted;
   const savedPerDay = Math.max(0, settings.initialCigarettesPerDay - avgPerDay) * costPerCigarette;
 
   return {
     weeklySaved: savedPerDay * 7,
     monthlyEstimate: savedPerDay * 30,
-    daysUsed: windowDays,
+    daysUsed: counted,
   };
 }
 

@@ -1,19 +1,38 @@
 import { useState } from "react";
-import { FormattedMessage, useIntl } from "react-intl";
-import { daysElapsed } from "../logic";
+import { FormattedDate, FormattedMessage, useIntl } from "react-intl";
+import { dayKey, daysElapsed } from "../logic";
 
 const fieldCls = "flex flex-col gap-1.5";
 const labelCls = "text-sm text-neutral-500";
 const inputCls =
   "px-3.5 py-3 border border-neutral-200 rounded-lg text-base bg-white focus:outline-2 focus:outline-orange focus:-outline-offset-1";
 
-export default function Settings({ state, onSave, onReset }) {
+export default function Settings({ state, onSave, onReset, onIgnoredDaysChange }) {
   const intl = useIntl();
   const days = daysElapsed(state.planStartTimestamp);
   const computedCurrent =
     state.settings.initialInterval + days * state.settings.dailyIncrease;
   const [form, setForm] = useState({ ...state.settings, currentInterval: computedCurrent });
   const [savedFlag, setSavedFlag] = useState(false);
+  const [newIgnoredDate, setNewIgnoredDate] = useState("");
+
+  const ignoredDays = state.ignoredDays ?? [];
+  const todayKey = dayKey(Date.now());
+  const planStartKey = state.planStartTimestamp ? dayKey(state.planStartTimestamp) : null;
+
+  const addIgnoredDay = () => {
+    if (!newIgnoredDate) return;
+    if (ignoredDays.includes(newIgnoredDate)) return;
+    if (newIgnoredDate >= todayKey) return;
+    if (planStartKey && newIgnoredDate < planStartKey) return;
+    const next = [...ignoredDays, newIgnoredDate].sort().reverse();
+    onIgnoredDaysChange(next);
+    setNewIgnoredDate("");
+  };
+
+  const removeIgnoredDay = (k) => {
+    onIgnoredDaysChange(ignoredDays.filter((d) => d !== k));
+  };
 
   const update = (k, v) => setForm({ ...form, [k]: v });
 
@@ -79,6 +98,60 @@ export default function Settings({ state, onSave, onReset }) {
           <option value="fr">{intl.formatMessage({ id: "lang_fr" })}</option>
         </select>
       </label>
+
+      <div className="flex flex-col gap-2 pt-1">
+        <span className={labelCls}>
+          <FormattedMessage id="settings_ignoredDays" />
+        </span>
+        <div className="flex gap-2">
+          <input
+            type="date"
+            className={inputCls + " flex-1"}
+            value={newIgnoredDate}
+            max={todayKey}
+            min={planStartKey ?? undefined}
+            onChange={(e) => setNewIgnoredDate(e.target.value)}
+          />
+          <button
+            type="button"
+            onClick={addIgnoredDay}
+            disabled={!newIgnoredDate}
+            className="px-4 rounded-lg bg-orange text-white text-sm font-semibold disabled:opacity-40"
+          >
+            <FormattedMessage id="settings_ignoredDays_add" />
+          </button>
+        </div>
+        {ignoredDays.length === 0 ? (
+          <p className="text-xs text-neutral-400">
+            <FormattedMessage id="settings_ignoredDays_empty" />
+          </p>
+        ) : (
+          <ul className="flex flex-col gap-1.5">
+            {ignoredDays.map((k) => {
+              const [y, m, d] = k.split("-").map(Number);
+              const date = new Date(y, m - 1, d);
+              return (
+                <li
+                  key={k}
+                  className="flex items-center justify-between border border-neutral-200 rounded-lg px-3 py-2 text-sm"
+                >
+                  <FormattedDate value={date} year="numeric" month="short" day="2-digit" weekday="short" />
+                  <button
+                    type="button"
+                    onClick={() => removeIgnoredDay(k)}
+                    className="text-red-600 text-xs"
+                  >
+                    <FormattedMessage id="settings_ignoredDays_remove" />
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
+        )}
+        <p className="text-xs text-neutral-400">
+          <FormattedMessage id="settings_ignoredDays_help" />
+        </p>
+      </div>
 
       <button
         type="submit"

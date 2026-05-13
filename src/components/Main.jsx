@@ -3,7 +3,7 @@ import { FormattedMessage, FormattedNumber, useIntl } from "react-intl";
 import { currentInterval, nextAllowedTime, computeSavings, formatHMS } from "../logic";
 
 export default function Main({ state, onLog }) {
-  const { settings, logs, planStartTimestamp } = state;
+  const { settings, logs, planStartTimestamp, ignoredDays = [] } = state;
   const intl = useIntl();
   const [now, setNow] = useState(() => Date.now());
 
@@ -16,7 +16,7 @@ export default function Main({ state, onLog }) {
   const remaining = next ? next - now : null;
   const canSmoke = next !== null && remaining <= 0;
   const interval = currentInterval(settings, planStartTimestamp, now);
-  const savings = computeSavings(settings, logs, planStartTimestamp, now);
+  const savings = computeSavings(settings, logs, planStartTimestamp, ignoredDays, now);
 
   const monthlyFormatted = savings
     ? intl.formatNumber(savings.monthlyEstimate, {

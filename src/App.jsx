@@ -63,7 +63,10 @@ export default function App({ onLanguageChange }) {
     }
     persist({ ...state, settings, logs });
   };
-  const resetPlan = () => persist({ ...state, logs: [], planStartTimestamp: null });
+  const resetPlan = () =>
+    persist({ ...state, logs: [], planStartTimestamp: null, ignoredDays: [] });
+
+  const setIgnoredDays = (ignoredDays) => persist({ ...state, ignoredDays });
 
   return (
     <div className="flex flex-col min-h-screen max-w-md mx-auto">
@@ -71,7 +74,12 @@ export default function App({ onLanguageChange }) {
         {screen === "main" && <Main state={state} onLog={logCigarette} />}
         {screen === "log" && <LogScreen state={state} onEdit={editLog} onDelete={deleteLog} />}
         {screen === "settings" && (
-          <Settings state={state} onSave={saveSettings} onReset={resetPlan} />
+          <Settings
+            state={state}
+            onSave={saveSettings}
+            onReset={resetPlan}
+            onIgnoredDaysChange={setIgnoredDays}
+          />
         )}
       </main>
       <nav className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md bg-white border-t border-neutral-200 flex pb-[env(safe-area-inset-bottom)]">

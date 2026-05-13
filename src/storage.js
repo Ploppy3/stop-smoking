@@ -18,6 +18,7 @@ export function loadState() {
       settings: { ...DEFAULT_SETTINGS, ...(parsed.settings || {}) },
       logs: Array.isArray(parsed.logs) ? parsed.logs : [],
       planStartTimestamp: parsed.planStartTimestamp ?? null,
+      ignoredDays: Array.isArray(parsed.ignoredDays) ? parsed.ignoredDays : [],
     };
   } catch {
     return null;
@@ -29,5 +30,5 @@ export function saveState(state) {
 }
 
 export function emptyState(settings = DEFAULT_SETTINGS) {
-  return { settings, logs: [], planStartTimestamp: null };
+  return { settings, logs: [], planStartTimestamp: null, ignoredDays: [] };
 }
