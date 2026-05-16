@@ -169,7 +169,7 @@ export default function Settings({ state, onSave, onReset, onIgnoredDaysChange }
       </button>
 
       <p className="text-sm text-neutral-500 text-center mt-8">
-        <FormattedMessage id="settings_version" /> 1.0.0
+        <FormattedMessage id="settings_version" /> 1.0.1
       </p>
     </form>
   );
