@@ -167,6 +167,10 @@ export default function Settings({ state, onSave, onReset, onIgnoredDaysChange }
       >
         <FormattedMessage id="settings_reset" />
       </button>
+
+      <p className="text-sm text-neutral-500 text-center mt-8">
+        <FormattedMessage id="settings_version" /> 1.0.0
+      </p>
     </form>
   );
 }
